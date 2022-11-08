@@ -51,13 +51,13 @@ PSQL_REPLICA=("$INSTALL_DIR"/psql -p "$REPLICA_PORT" -d "$DB")
 
 # Set log level
 "${PSQL_PRIMARY[@]}" -c "ALTER SYSTEM SET log_min_messages = DEBUG2;"
-"${PSQL_REPLICA[@]}" -c "ALTER SYSTEM SET log_min_messagse = DEBUG2;"
+"${PSQL_REPLICA[@]}" -c "ALTER SYSTEM SET log_min_messages = DEBUG2;"
 
 # Restart primary
-"$INSTALL_DIR"/pg_ctl -D "$PRIMARY_DATADIR" -o "-p $PRIMARY_PORT" -l "$PRIMARY_LOGFILE" restart
+"$INSTALL_DIR"/pg_ctl -D "$PRIMARY_DATADIR" -o "-p $PRIMARY_PORT" -l "$PRIMARY_LOGFILE" restart -m smart
 
 # Restart replica
-"$INSTALL_DIR"/pg_ctl -D "$REPLICA_DATADIR" -o "-p $REPLICA_PORT" -l "$REPLICA_LOGFILE" restart
+"$INSTALL_DIR"/pg_ctl -D "$REPLICA_DATADIR" -o "-p $REPLICA_PORT" -l "$REPLICA_LOGFILE" restart -m smart
 
 # fully set up replication
 TABLE_NAME="foo"
