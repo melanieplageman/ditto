@@ -8,57 +8,39 @@ REPLICA_PORT=6432
 REPLICA_DATADIR="/tmp/pgdatareplica"
 REPLICA_LOGFILE="logfilereplica"
 
-# Init primary 
-truncate --size=0 "$PRIMARY_LOGFILE"
+for role in REPLICA PRIMARY; do
+  DATADIR=${role}_DATADIR
+  PORT=${role}_PORT
+  LOGFILE=${role}_LOGFILE
 
-"$INSTALL_DIR"/pg_ctl -D "$PRIMARY_DATADIR" -o "-p $PRIMARY_PORT" -l "$PRIMARY_LOGFILE" status &> primary_out
+  # Delete old logfile
+  rm "${!LOGFILE}"
 
-STATUS="$?"
+  # Init cluster
+  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" status &> primary_out
 
-if [ "$STATUS" -eq 0 ]; then
-  echo "database running, must stop, then initdb"
-  "$INSTALL_DIR"/pg_ctl -D "$PRIMARY_DATADIR" -o "-p $PRIMARY_PORT" -l "$PRIMARY_LOGFILE" stop
-fi
+  STATUS="$?"
 
-if [ $STATUS -eq 4 ]; then
-  echo "no valid data dir. need initdb anyway"
-fi
+  if [ "$STATUS" -eq 0 ]; then
+    echo "database running, must stop, then initdb"
+    "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" stop
+  fi
 
-if [ $STATUS -eq 3 ]; then
-  echo "database stopped. doing initdb"
-fi
+  if [ $STATUS -eq 4 ]; then
+    echo "no valid data dir. need initdb anyway"
+  fi
+
+  if [ $STATUS -eq 3 ]; then
+    echo "database stopped. doing initdb"
+  fi
+
+  rm -rf "${!DATADIR}"
+  mkdir "${!DATADIR}"
+  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -l "${!LOGFILE}" init
+  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" start
+done
 
 DB="postgres"
-
-rm -rf "$PRIMARY_DATADIR"
-mkdir "$PRIMARY_DATADIR"
-"$INSTALL_DIR"/pg_ctl -D "$PRIMARY_DATADIR" -l "$PRIMARY_LOGFILE" init
-"$INSTALL_DIR"/pg_ctl -D "$PRIMARY_DATADIR" -o "-p $PRIMARY_PORT" -l "$PRIMARY_LOGFILE" start
-
-# Init replica
-truncate --size=0 "$REPLICA_LOGFILE"
-
-"$INSTALL_DIR"/pg_ctl -D "$REPLICA_DATADIR" -o "-p $REPLICA_PORT" -l "$REPLICA_LOGFILE" status &> replica_out
-
-STATUS="$?"
-
-if [ "$STATUS" -eq 0 ]; then
-  echo "database running, must stop, then initdb"
-  "$INSTALL_DIR"/pg_ctl -D "$REPLICA_DATADIR" -o "-p $REPLICA_PORT" -l "$REPLICA_LOGFILE" stop
-fi
-
-if [ $STATUS -eq 4 ]; then
-  echo "no valid data dir. need initdb anyway"
-fi
-
-if [ $STATUS -eq 3 ]; then
-  echo "database stopped. doing initdb"
-fi
-
-rm -rf "$REPLICA_DATADIR"
-mkdir "$REPLICA_DATADIR"
-"$INSTALL_DIR"/pg_ctl -D "$REPLICA_DATADIR" -l "$REPLICA_LOGFILE" init
-"$INSTALL_DIR"/pg_ctl -D "$REPLICA_DATADIR" -o "-p $REPLICA_PORT" -l "$REPLICA_LOGFILE" start
 
 PSQL_PRIMARY=("$INSTALL_DIR"/psql -p "$PRIMARY_PORT" -d "$DB")
 PSQL_REPLICA=("$INSTALL_DIR"/psql -p "$REPLICA_PORT" -d "$DB")
