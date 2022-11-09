@@ -45,7 +45,7 @@ DB="postgres"
 PSQL_PRIMARY=("$INSTALL_DIR"/psql -p "$PRIMARY_PORT" -d "$DB")
 PSQL_REPLICA=("$INSTALL_DIR"/psql -p "$REPLICA_PORT" -d "$DB")
 
-# Set wal_level logical and restart
+# Set wal_level logical
 "${PSQL_PRIMARY[@]}" -c "ALTER SYSTEM SET wal_level = logical;"
 "${PSQL_REPLICA[@]}" -c "ALTER SYSTEM SET wal_level = logical;"
 
