@@ -19,6 +19,7 @@ for role in REPLICA PRIMARY; do
 
   if [ "$STATUS" -eq 0 ]; then
     echo "database running, must stop"
+    "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" stop -m smart
   fi
 
   if [ $STATUS -eq 4 ]; then
@@ -29,5 +30,4 @@ for role in REPLICA PRIMARY; do
     echo "database stopped. no need to shutdown."
   fi
 
-  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" stop -m smart
 done
