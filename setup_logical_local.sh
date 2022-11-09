@@ -17,7 +17,7 @@ for role in REPLICA PRIMARY; do
   rm "${!LOGFILE}"
 
   # Init cluster
-  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" status &> primary_out
+  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" status
 
   STATUS="$?"
 
