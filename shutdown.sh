@@ -13,7 +13,7 @@ for role in REPLICA PRIMARY; do
   PORT=${role}_PORT
   LOGFILE=${role}_LOGFILE
 
-  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" status &> primary_out
+  "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" status
 
   STATUS="$?"
 
