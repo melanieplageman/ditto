@@ -14,7 +14,7 @@ for role in REPLICA PRIMARY; do
   LOGFILE=${role}_LOGFILE
 
   # Delete old logfile
-  rm "${!LOGFILE}"
+  rm -f "${!LOGFILE}"
 
   # Init cluster
   "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" status
@@ -68,17 +68,22 @@ PSQL_REPLICA=("$INSTALL_DIR"/psql -p "$REPLICA_PORT" -d "$DB")
 # Set up replication
 TABLE_NAME="foo"
 TABLE2_NAME="bar"
+TABLE3_NAME="baz"
+
 PUB="pub1"
 SUB="sub1"
 
 # Create table
 "${PSQL_PRIMARY[@]}" -c "CREATE TABLE ${TABLE_NAME}(a int, b int);"
 "${PSQL_PRIMARY[@]}" -c "CREATE TABLE ${TABLE2_NAME}(a int, b int);"
+"${PSQL_PRIMARY[@]}" -c "CREATE TABLE ${TABLE3_NAME}(a int, b int);"
 "${PSQL_REPLICA[@]}" -c "CREATE TABLE ${TABLE_NAME}(a int, b int);"
 "${PSQL_REPLICA[@]}" -c "CREATE TABLE ${TABLE2_NAME}(a int, b int);"
+"${PSQL_REPLICA[@]}" -c "CREATE TABLE ${TABLE3_NAME}(a int, b int);"
 
-"${PSQL_PRIMARY[@]}" -c "CREATE PUBLICATION $PUB FOR TABlE $TABLE_NAME, $TABLE2_NAME;"
+"${PSQL_PRIMARY[@]}" -c "CREATE PUBLICATION $PUB FOR TABlE $TABLE_NAME, $TABLE2_NAME, $TABLE3_NAME;"
 "${PSQL_REPLICA[@]}" -c "CREATE SUBSCRIPTION $SUB CONNECTION 'dbname=$DB user=mplageman host=localhost port=$PRIMARY_PORT' PUBLICATION $PUB;"
 
 "${PSQL_PRIMARY[@]}" -c "INSERT INTO $TABLE_NAME SELECT i, i FROM generate_series(1,10)i;"
 "${PSQL_PRIMARY[@]}" -c "INSERT INTO $TABLE2_NAME SELECT 1, 2 FROM generate_series(1,3)i;"
+"${PSQL_PRIMARY[@]}" -c "INSERT INTO $TABLE3_NAME SELECT 1, 2 FROM generate_series(1,14)i;"

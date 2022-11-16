@@ -21,7 +21,7 @@ for role in REPLICA PRIMARY; do
 
   if [ "$STATUS" -eq 0 ]; then
     echo "database running, must stop."
-    "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" stop
+    "$INSTALL_DIR"/pg_ctl -D "${!DATADIR}" -o "-p ${!PORT}" -l "${!LOGFILE}" stop -m smart
   fi
 
   if [ $STATUS -eq 4 ]; then
@@ -35,7 +35,7 @@ for role in REPLICA PRIMARY; do
   # Delete their datadirs and logfiles so that we are ready to init the
   # primary, take a backup, and start the standby
   rm -rf "${!DATADIR}"
-  rm "${!LOGFILE}"
+  rm -f "${!LOGFILE}"
 done
 
 # Init the primary
